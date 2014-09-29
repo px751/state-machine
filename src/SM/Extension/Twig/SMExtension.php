@@ -35,6 +35,7 @@ class SMExtension extends \Twig_Extension
     {
         return array(
             'sm_can' => new \Twig_Function_Method($this, 'can'),
+            'sm_texts' => new \Twig_Function_Method($this, 'texts'),
         );
     }
 
@@ -48,6 +49,35 @@ class SMExtension extends \Twig_Extension
     public function can($object, $transition, $graph = 'default')
     {
         return $this->factory->get($object, $graph)->can($transition);
+    }
+
+    /**
+     * Recupere le tabeau de configutaion des textes
+     * 
+     * @param  Echangeur $echangeur Echangeur en cours
+     * @return array                Textes
+     */
+    public function texts($echangeur, $graph = 'default')
+    {
+        $echangeurMoi = $echangeur;
+        $echange = $echangeur->getEchange();
+        $echangeurAutre = $echange->getEchangeurAutre($echangeur->getClient());
+
+        $echangeurSM = $this->factory->get($echangeur, $graph);
+
+        $texts = $echangeurSM->getTexts();
+
+        foreach ($texts as $text)
+        {
+            if ($text['states']['me'] == $echangeurMoi->getState()
+                && $text['states']['other'] == $echangeurAutre->getState())
+            {
+                return $text;
+            }
+                
+        }
+
+        return NULL;
     }
 
     /**
