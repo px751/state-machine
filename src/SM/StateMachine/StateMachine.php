@@ -174,6 +174,14 @@ class StateMachine implements StateMachineInterface
     /**
      * {@inheritDoc}
      */
+    public function getTexts()
+    {
+        return $this->config['texts'];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getPossibleTransitions()
     {
         return array_filter(
