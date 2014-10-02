@@ -35,6 +35,7 @@ class SMExtension extends \Twig_Extension
     {
         return array(
             'sm_can' => new \Twig_Function_Method($this, 'can'),
+            'sm_is' => new \Twig_Function_Method($this, 'is'),
             'sm_texts' => new \Twig_Function_Method($this, 'texts'),
         );
     }
@@ -49,6 +50,14 @@ class SMExtension extends \Twig_Extension
     public function can($object, $transition, $graph = 'default')
     {
         return $this->factory->get($object, $graph)->can($transition);
+        
+    }
+
+    public function is($object, $state, $graph = 'default')
+    {
+        $objectSM = $this->factory->get($echangeur, $graph);
+
+        return ($object->getState() == $state);
     }
 
     /**
@@ -70,7 +79,8 @@ class SMExtension extends \Twig_Extension
         foreach ($texts as $text)
         {
             if ($text['states']['me'] == $echangeurMoi->getState()
-                && $text['states']['other'] == $echangeurAutre->getState())
+                && (($echangeurAutre && $text['states']['other'] == $echangeurAutre->getState())
+                    || (!($echangeurAutre) && $text['states']['other'] == null)))
             {
                 return $text;
             }
