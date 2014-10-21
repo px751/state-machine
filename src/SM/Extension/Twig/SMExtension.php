@@ -76,15 +76,27 @@ class SMExtension extends \Twig_Extension
 
         $texts = $echangeurSM->getTexts();
 
+        if ($echange->isPostal())
+        {
+            foreach ($texts as $text)
+            {
+
+                if ($text['states']['me'] == $echangeurMoi->getState()
+                    && $echangeurAutre && $text['states']['other'] == $echangeurAutre->getState()
+                    && isset($text['postal']) && $text['postal'] != 0)
+                {
+                    return $text;
+                }
+            }
+        }
+
         foreach ($texts as $text)
         {
             if ($text['states']['me'] == $echangeurMoi->getState()
-                && (($echangeurAutre && $text['states']['other'] == $echangeurAutre->getState())
-                    || (!($echangeurAutre) && $text['states']['other'] == null)))
+                && $echangeurAutre && $text['states']['other'] == $echangeurAutre->getState())
             {
                 return $text;
             }
-                
         }
 
         return NULL;
