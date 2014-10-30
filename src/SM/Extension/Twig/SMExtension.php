@@ -34,9 +34,10 @@ class SMExtension extends \Twig_Extension
     public function getFunctions()
     {
         return array(
-            'sm_can' => new \Twig_Function_Method($this, 'can'),
-            'sm_is' => new \Twig_Function_Method($this, 'is'),
-            'sm_texts' => new \Twig_Function_Method($this, 'texts'),
+            'sm_can'             => new \Twig_Function_Method($this, 'can'),
+            'sm_is'              => new \Twig_Function_Method($this, 'is'),
+            'sm_texts'           => new \Twig_Function_Method($this, 'texts'),
+            'sm_texts_enveloppe' => new \Twig_Function_Method($this, 'textsEnveloppe'),
         );
     }
 
@@ -60,6 +61,7 @@ class SMExtension extends \Twig_Extension
         return ($object->getState() == $state);
     }
 
+
     /**
      * Recupere le tabeau de configutaion des textes
      * 
@@ -80,9 +82,8 @@ class SMExtension extends \Twig_Extension
         {
             foreach ($texts as $text)
             {
-
-                if ($text['states']['me'] == $echangeurMoi->getState()
-                    && $echangeurAutre && $text['states']['other'] == $echangeurAutre->getState()
+                if ($echangeurMoi->getState() == $text['states']['me']
+                    && $echangeurAutre && (!isset($text['states']['other']) || $text['states']['other'] == $echangeurAutre->getState())
                     && isset($text['postal']) && $text['postal'] != 0)
                 {
                     return $text;
@@ -92,14 +93,54 @@ class SMExtension extends \Twig_Extension
 
         foreach ($texts as $text)
         {
-            if ($text['states']['me'] == $echangeurMoi->getState()
-                && $echangeurAutre && $text['states']['other'] == $echangeurAutre->getState())
+            if ($echangeurMoi && $echangeurMoi->getState() == $text['states']['me']
+                && $echangeurAutre && (!isset($text['states']['other']) || $text['states']['other'] == $echangeurAutre->getState()))
             {
                 return $text;
             }
         }
 
-        return NULL;
+        return null;
+    }
+
+    /**
+     * Recupere le tabeau de configutaion des textes pour les enveloppes
+     * 
+     * @param  Enveloppe $enveloppe Enveloppe en cours
+     * @return array                Textes
+     */
+    public function textsEnveloppe($enveloppe, $graph = 'default')
+    {
+        $echangeurMoi = $enveloppe->getEchangeur();
+
+        $echange = $echangeurMoi->getEchange();
+        $echangeurAutre = $echange->getEchangeurAutre($echangeurMoi->getClient());
+
+        $echangeurSM = $this->factory->get($enveloppe, $graph);
+
+        $texts = $echangeurSM->getTexts();
+
+        if ($echange->isPostal())
+        {
+            foreach ($texts as $text)
+            {
+                if ($enveloppe->getState() == $text['states']['me']
+                    && isset($text['postal']) && $text['postal'] != 0)
+                {
+                    return $text;
+                }
+            }
+        }
+
+        foreach ($texts as $text)
+        {
+            if ($echangeurMoi && $enveloppe->getState() == $text['states']['me'])
+            {
+                return $text;
+            }
+        }
+
+        return null;
     }
 
     /**
