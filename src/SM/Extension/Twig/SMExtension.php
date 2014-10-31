@@ -111,6 +111,10 @@ class SMExtension extends \Twig_Extension
      */
     public function textsEnveloppe($enveloppe, $graph = 'default')
     {
+        if (!$enveloppe || ($enveloppe && !$enveloppe->getEchangeur()))
+            throw new \Exception("Erreur : enveloppe null ou non relié a un échange");
+            
+
         $echangeurMoi = $enveloppe->getEchangeur();
 
         $echange = $echangeurMoi->getEchange();
